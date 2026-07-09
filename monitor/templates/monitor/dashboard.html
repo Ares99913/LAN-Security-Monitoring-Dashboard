@@ -3,253 +3,641 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>509 Server - Network Monitor</title>
+<title>509 Server - LAN Security Monitor</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Segoe UI',sans-serif;background:#04090f;color:#ddeeff;min-height:100vh}
-::-webkit-scrollbar{width:6px}
-::-webkit-scrollbar-thumb{background:#1e4080;border-radius:3px}
-header{background:#080f1a;border-bottom:1px solid #1c3050;padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
-.logo{font-size:18px;font-weight:800;color:#fff}.logo span{color:#00c8f0}
-.hright{display:flex;align-items:center;gap:16px}
-.pulse{width:8px;height:8px;border-radius:50%;background:#00e87a;box-shadow:0 0 0 0 rgba(0,232,122,.6);animation:pulse 2s infinite}
-@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(0,232,122,.6)}70%{box-shadow:0 0 0 8px rgba(0,232,122,0)}100%{box-shadow:0 0 0 0 rgba(0,232,122,0)}}
-.clock{font-family:monospace;font-size:13px;color:#00c8f0;background:rgba(0,200,240,.07);border:1px solid rgba(0,200,240,.2);padding:4px 12px;border-radius:6px}
-.layout{display:flex;flex:1}
-nav{width:200px;background:#080f1a;border-right:1px solid #1c3050;padding:16px 10px}
-.nav-lbl{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#344f6a;padding:10px 10px 4px}
-.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:6px;cursor:pointer;color:#7aa0c0;font-size:13px;border:1px solid transparent;margin-bottom:2px}
-.nav-item:hover{background:#152338;color:#ddeeff;border-color:#1c3050}
-.nav-item.active{background:rgba(0,200,240,.08);color:#00c8f0;border-color:rgba(0,200,240,.2)}
-.badge{margin-left:auto;background:#ff3b5c;color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:20px;display:none}
-.badge.show{display:block}
-main{flex:1;padding:24px;overflow-y:auto;display:flex;flex-direction:column;gap:20px}
-.section{display:none;flex-direction:column;gap:20px}
+body{font-family:Segoe UI,Arial,sans-serif;background:#050910;color:#dbeafe;min-height:100vh}
+::-webkit-scrollbar{width:7px;height:7px}
+::-webkit-scrollbar-thumb{background:#24415f;border-radius:8px}
+header{height:58px;background:#08111d;border-bottom:1px solid #20344d;padding:0 22px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20}
+.logo{font-size:17px;font-weight:800;color:#fff}.logo span{color:#38d9ff}
+.hright{display:flex;gap:14px;align-items:center}
+.live-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 0 rgba(34,197,94,.7);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.7)}70%{box-shadow:0 0 0 9px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+.clock{font-family:Consolas,monospace;font-size:12px;color:#38d9ff;border:1px solid rgba(56,217,255,.25);background:rgba(56,217,255,.08);padding:5px 10px;border-radius:6px}
+.layout{display:flex;min-height:calc(100vh - 58px)}
+nav{width:210px;background:#08111d;border-right:1px solid #20344d;padding:16px 10px;flex-shrink:0}
+.nav-lbl{font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#60758d;padding:10px 10px 5px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:7px;color:#93a9bf;font-size:13px;cursor:pointer;border:1px solid transparent;margin-bottom:3px}
+.nav-item:hover{background:#111d2c;color:#fff;border-color:#20344d}
+.nav-item.active{background:rgba(56,217,255,.09);color:#38d9ff;border-color:rgba(56,217,255,.25)}
+.badge{margin-left:auto;background:#ef4444;color:white;font-size:10px;font-weight:800;padding:2px 6px;border-radius:999px;display:none}
+.badge.show{display:inline-flex}
+main{flex:1;padding:22px;display:flex;flex-direction:column;gap:18px;overflow:hidden}
+.section{display:none;flex-direction:column;gap:18px}
 .section.active{display:flex}
-.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
-.card{background:#0f1e30;border:1px solid #1c3050;border-radius:12px;padding:18px;position:relative;overflow:hidden}
-.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:12px 12px 0 0}
-.c1::before{background:#00c8f0}.c2::before{background:#00e87a}
-.c3::before{background:#ff3b5c}.c4::before{background:#ffb800}
-.c5::before{background:#9b6fff}
-.card-lbl{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#344f6a;margin-bottom:8px}
-.card-val{font-size:30px;font-weight:800;font-family:monospace}
-.card-sub{font-size:10px;color:#344f6a;margin-top:4px}
-.v1{color:#00c8f0}.v2{color:#00e87a}.v3{color:#ff3b5c}.v4{color:#ffb800}.v5{color:#9b6fff}
-.card-icon{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:28px;opacity:.1}
-.sec-head{display:flex;align-items:center;justify-content:space-between}
-.sec-title{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px}
-.dot{width:7px;height:7px;border-radius:50%;background:#00c8f0}
-.btn{padding:7px 14px;border-radius:6px;border:1px solid;font-size:12px;font-weight:600;cursor:pointer;background:rgba(0,200,240,.1);border-color:rgba(0,200,240,.3);color:#00c8f0}
-.btn:hover{background:rgba(0,200,240,.2)}
-.btn-g{background:rgba(0,232,122,.1);border-color:rgba(0,232,122,.3);color:#00e87a}
-.btn-g:hover{background:rgba(0,232,122,.2)}
-.tbl-wrap{background:#0f1e30;border:1px solid #1c3050;border-radius:12px;overflow:hidden}
+.cards{display:grid;grid-template-columns:repeat(6,minmax(120px,1fr));gap:12px}
+.card{background:#101b2a;border:1px solid #20344d;border-radius:9px;padding:15px;min-height:96px}
+.card-lbl{font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:#72869c;margin-bottom:7px}
+.card-val{font-size:28px;font-weight:900;font-family:Consolas,monospace}
+.card-sub{font-size:11px;color:#72869c;margin-top:4px}
+.cyan{color:#38d9ff}.green{color:#22c55e}.red{color:#ef4444}.amber{color:#f59e0b}.purple{color:#a78bfa}.blue{color:#60a5fa}
+.sec-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.sec-title{font-size:15px;font-weight:800;display:flex;gap:8px;align-items:center}
+.dot{width:7px;height:7px;border-radius:50%;background:#38d9ff}
+.btn{padding:7px 12px;border-radius:7px;border:1px solid rgba(56,217,255,.3);background:rgba(56,217,255,.08);color:#38d9ff;font-size:12px;font-weight:700;cursor:pointer}
+.btn:hover{background:rgba(56,217,255,.16)}
+.btn-green{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.08);color:#22c55e}
+.btn-red{border-color:rgba(239,68,68,.35);background:rgba(239,68,68,.08);color:#ef4444}
+.btn-amber{border-color:rgba(245,158,11,.35);background:rgba(245,158,11,.08);color:#f59e0b}
+.tbl-wrap{background:#101b2a;border:1px solid #20344d;border-radius:9px;overflow:auto}
 table{width:100%;border-collapse:collapse;font-size:12px}
-thead{background:#0d1726;border-bottom:1px solid #1c3050}
-th{padding:10px 14px;text-align:left;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#344f6a}
-td{padding:10px 14px;border-bottom:1px solid rgba(28,48,80,.4);color:#7aa0c0;vertical-align:middle}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:#152338}
-.mono{font-family:monospace}
-.sbadge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:700}
-.s-on{background:rgba(0,232,122,.1);color:#00e87a;border:1px solid rgba(0,232,122,.25)}
-.s-off{background:rgba(255,59,92,.1);color:#ff3b5c;border:1px solid rgba(255,59,92,.25)}
-.sdot{width:6px;height:6px;border-radius:50%}
-.s-on .sdot{background:#00e87a;animation:pulse 2s infinite}
-.s-off .sdot{background:#ff3b5c}
-.ab{display:inline-flex;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:700}
-.ab-red{background:rgba(255,59,92,.12);color:#ff3b5c;border:1px solid rgba(255,59,92,.25)}
-.ab-pur{background:rgba(155,111,255,.12);color:#9b6fff;border:1px solid rgba(155,111,255,.25)}
-.ab-cyn{background:rgba(0,200,240,.12);color:#00c8f0;border:1px solid rgba(0,200,240,.25)}
-.ab-amb{background:rgba(255,184,0,.12);color:#ffb800;border:1px solid rgba(255,184,0,.25)}
-.ab-grn{background:rgba(0,232,122,.12);color:#00e87a;border:1px solid rgba(0,232,122,.25)}
-.pbar{height:5px;background:#0d1726;border-radius:3px;overflow:hidden;border:1px solid #1c3050;flex:1}
-.pfill{height:100%;border-radius:3px;transition:width .4s}
-.p-cpu{background:linear-gradient(90deg,#00c8f0,#9b6fff)}
-.p-ram{background:linear-gradient(90deg,#00e87a,#00c8f0)}
-.p-dsk{background:linear-gradient(90deg,#ffb800,#ff3b5c)}
-.empty{padding:40px;text-align:center;color:#344f6a}
-.toast{position:fixed;bottom:24px;right:24px;background:#0f1e30;border:1px solid #1c3050;border-radius:12px;padding:12px 20px;font-size:13px;z-index:999;display:none;box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.agents-table{min-width:1400px}
+thead{background:#0c1522;border-bottom:1px solid #20344d}
+th{padding:10px 12px;text-align:left;font-size:10px;font-weight:900;letter-spacing:.8px;text-transform:uppercase;color:#72869c;white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid rgba(32,52,77,.55);color:#9fb6ca;vertical-align:middle}
+tr:hover td{background:#111d2c}
+.empty{padding:36px;text-align:center;color:#60758d}
+.mono{font-family:Consolas,monospace}
+.status{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:900;border-radius:999px;padding:4px 8px;border:1px solid}
+.status-dot{width:6px;height:6px;border-radius:50%}
+.online{color:#22c55e;background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.3)}
+.online .status-dot{background:#22c55e;animation:pulse 2s infinite}
+.offline{color:#ef4444;background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3)}
+.offline .status-dot{background:#ef4444}
+.tag{display:inline-flex;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:800;border:1px solid}
+.tag-red{color:#ef4444;background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3)}
+.tag-green{color:#22c55e;background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.3)}
+.tag-amber{color:#f59e0b;background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.3)}
+.tag-cyan{color:#38d9ff;background:rgba(56,217,255,.1);border-color:rgba(56,217,255,.3)}
+.tag-purple{color:#a78bfa;background:rgba(167,139,250,.1);border-color:rgba(167,139,250,.3)}
+.pbar{height:6px;background:#08111d;border:1px solid #20344d;border-radius:999px;overflow:hidden;min-width:72px}
+.pfill{height:100%;border-radius:999px}
+.p-cpu{background:#38d9ff}.p-ram{background:#22c55e}.p-dsk{background:#f59e0b}
+.metric{display:flex;align-items:center;gap:7px}
+.metric span{width:34px;text-align:right;font-family:Consolas,monospace;font-size:11px;color:#dbeafe}
+.toast{position:fixed;right:22px;bottom:22px;background:#101b2a;border:1px solid #20344d;border-radius:9px;padding:12px 16px;font-size:13px;display:none;z-index:100}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.58);display:none;align-items:center;justify-content:center;z-index:80;padding:24px}
+.modal.show{display:flex}
+.panel{width:min(1100px,96vw);max-height:88vh;background:#0b1421;border:1px solid #20344d;border-radius:10px;overflow:hidden;display:flex;flex-direction:column}
+.panel-head{padding:14px 16px;border-bottom:1px solid #20344d;display:flex;align-items:center;justify-content:space-between}
+.panel-title{font-weight:900;color:#fff}
+.panel-body{padding:16px;overflow:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.info-box{background:#101b2a;border:1px solid #20344d;border-radius:8px;overflow:hidden}
+.info-title{padding:10px 12px;border-bottom:1px solid #20344d;font-size:12px;font-weight:900;color:#38d9ff;text-transform:uppercase;letter-spacing:.6px}
+.info-content{padding:10px 12px;max-height:260px;overflow:auto}
+.kv{display:grid;grid-template-columns:140px 1fr;gap:8px;font-size:12px;padding:5px 0;border-bottom:1px solid rgba(32,52,77,.4)}
+.kv:last-child{border-bottom:0}
+.k{color:#72869c}.v{color:#dbeafe}
+.list-line{font-family:Consolas,monospace;font-size:11px;padding:6px 0;border-bottom:1px solid rgba(32,52,77,.35);color:#c7d9eb}
+.list-line:last-child{border-bottom:0}
+.port-up{color:#22c55e;font-weight:800}
+.port-down{color:#ef4444;font-weight:800}
+.port-unknown{color:#f59e0b;font-weight:800}
+.macs{max-width:260px;white-space:normal;word-break:break-word;font-size:11px}
+.sw-summary{display:inline-flex;align-items:center;padding:4px 12px;border-radius:999px;background:#1f2937;color:#e5e7eb;font-size:12px;font-weight:700;border:1px solid #20344d}
+
+.trace-card{background:#101b2a;border:1px solid #20344d;border-radius:10px;padding:16px;margin-bottom:16px}
+.trace-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.trace-title{font-size:14px;font-weight:900;color:#fff}
+.trace-meta{font-size:11px;color:#72869c;margin-top:3px}
+.hop-chain{display:flex;align-items:center;flex-wrap:wrap;gap:4px;padding:12px 0}
+.hop-box{display:flex;flex-direction:column;align-items:center;gap:4px}
+.hop-node{padding:7px 12px;border-radius:8px;font-size:11px;font-family:Consolas,monospace;font-weight:700;border:1px solid;min-width:110px;text-align:center}
+.hop-num{font-size:10px;color:#60758d;font-weight:700}
+.hop-rtt{font-size:10px;font-weight:700;margin-top:2px}
+.hop-arrow{color:#344f6a;font-size:16px;padding:0 2px;margin-top:-14px}
+.hop-green{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.3);color:#22c55e}
+.hop-amber{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.3);color:#f59e0b}
+.hop-red{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3);color:#ef4444}
+.hop-timeout{background:rgba(100,100,100,.1);border-color:rgba(100,100,100,.3);color:#6b7280}
+.hop-target{background:rgba(56,217,255,.1);border-color:rgba(56,217,255,.4);color:#38d9ff}
+.hop-source{background:rgba(167,139,250,.1);border-color:rgba(167,139,250,.4);color:#a78bfa}
+.trace-empty{text-align:center;padding:24px;color:#60758d;font-size:13px}
+
+@media(max-width:1100px){.cards{grid-template-columns:repeat(3,1fr)}nav{width:180px}.panel-body{grid-template-columns:1fr}}
+@media(max-width:760px){.layout{flex-direction:column}nav{width:100%;display:flex;overflow:auto;border-right:0;border-bottom:1px solid #20344d}.nav-lbl{display:none}.nav-item{white-space:nowrap}.cards{grid-template-columns:repeat(2,1fr)}main{padding:14px}.hop-chain{flex-direction:column}.hop-arrow{transform:rotate(90deg)}}
 </style>
 </head>
 <body>
+
 <header>
-  <div class="logo">&#128737; <span>509</span> Server Monitor</div>
+  <div class="logo">&#128737; <span>509</span> LAN Security Monitor</div>
   <div class="hright">
-    <div class="pulse"></div>
+    <div class="live-dot"></div>
     <div class="clock" id="clk">--:--:--</div>
   </div>
 </header>
+
 <div class="layout">
 <nav>
   <div class="nav-lbl">Monitor</div>
-  <div class="nav-item active" onclick="show('dashboard',this)">&#128202; <span>Dashboard</span></div>
-  <div class="nav-item" onclick="show('machines',this)">&#128187; <span>Machines</span><span class="badge" id="bm"></span></div>
+  <div class="nav-item active" data-nav="dashboard" onclick="show('dashboard',this)">&#128202; Dashboard</div>
+  <div class="nav-item" data-nav="machines" onclick="show('machines',this)">&#128187; Agents <span class="badge" id="bm"></span></div>
   <div class="nav-lbl">Security</div>
-  <div class="nav-item" onclick="show('alerts',this)">&#128680; <span>Alerts</span><span class="badge" id="ba"></span></div>
-  <div class="nav-item" onclick="show('banned',this)">&#128308; <span>Banned IPs</span><span class="badge" id="bb"></span></div>
+  <div class="nav-item" data-nav="alerts" onclick="show('alerts',this)">&#128680; Alerts <span class="badge" id="ba"></span></div>
+  <div class="nav-item" data-nav="banned" onclick="show('banned',this)">&#128308; Banned IPs <span class="badge" id="bb"></span></div>
+  <div class="nav-lbl">Network</div>
+  <div class="nav-item" data-nav="switch" onclick="show('switch',this)">&#128268; Switch Ports</div>
+  <div class="nav-item" data-nav="traceroute" onclick="show('traceroute',this)">&#127758; Traceroute</div>
 </nav>
+
 <main>
-
-<!-- DASHBOARD -->
-<div class="section active" id="sec-dashboard">
-  <div class="cards">
-    <div class="card c1"><div class="card-lbl">Total Devices</div><div class="card-val v1" id="o-tot">0</div><div class="card-sub">LAN pe connected</div><div class="card-icon">&#127760;</div></div>
-    <div class="card c2"><div class="card-lbl">Online</div><div class="card-val v2" id="o-on">0</div><div class="card-sub">Responding</div><div class="card-icon">&#128994;</div></div>
-    <div class="card c3"><div class="card-lbl">Offline</div><div class="card-val v3" id="o-off">0</div><div class="card-sub">Not responding</div><div class="card-icon">&#128308;</div></div>
-    <div class="card c4"><div class="card-lbl">Alerts</div><div class="card-val v4" id="o-alr">0</div><div class="card-sub">Unread</div><div class="card-icon">&#128680;</div></div>
-    <div class="card c5"><div class="card-lbl">Banned IPs</div><div class="card-val v5" id="o-ban">0</div><div class="card-sub">Active bans</div><div class="card-icon">&#128272;</div></div>
-  </div>
-  <div>
-    <div class="sec-head" style="margin-bottom:12px">
-      <div class="sec-title"><div class="dot"></div>Recent Alerts</div>
-      <button class="btn" onclick="show('alerts',document.querySelectorAll('.nav-item')[2])">View All</button>
+  <div class="section active" id="sec-dashboard">
+    <div class="cards">
+      <div class="card"><div class="card-lbl">Total Agents</div><div class="card-val cyan" id="o-tot">0</div><div class="card-sub">Registered</div></div>
+      <div class="card"><div class="card-lbl">Online</div><div class="card-val green" id="o-on">0</div><div class="card-sub">Live heartbeat</div></div>
+      <div class="card"><div class="card-lbl">Offline</div><div class="card-val red" id="o-off">0</div><div class="card-sub">No heartbeat</div></div>
+      <div class="card"><div class="card-lbl">Active IPs</div><div class="card-val blue" id="o-ip">0</div><div class="card-sub">Online unique IPs</div></div>
+      <div class="card"><div class="card-lbl">Unread Alerts</div><div class="card-val amber" id="o-alr">0</div><div class="card-sub">Needs review</div></div>
+      <div class="card"><div class="card-lbl">Banned IPs</div><div class="card-val purple" id="o-ban">0</div><div class="card-sub">Active lockouts</div></div>
     </div>
-    <div class="tbl-wrap"><table>
-      <thead><tr><th>Type</th><th>Hostname</th><th>IP</th><th>Message</th><th>Time</th></tr></thead>
-      <tbody id="r-alerts"><tr><td colspan="5" class="empty">&#10003; No alerts!</td></tr></tbody>
-    </table></div>
+    <div>
+      <div class="sec-head" style="margin-bottom:12px">
+        <div class="sec-title"><div class="dot"></div>Recent Alerts</div>
+        <button class="btn" onclick="show('alerts',document.querySelector('[data-nav=alerts]'))">View All</button>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Type</th><th>Hostname</th><th>IP</th><th>Message</th><th>Time</th></tr></thead>
+          <tbody id="r-alerts"><tr><td colspan="5" class="empty">No alerts</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div>
+      <div class="sec-head" style="margin-bottom:10px">
+        <div class="sec-title"><div class="dot"></div>Switch Physical Ports</div>
+        <span class="sw-summary" id="switchSummary">No Switch</span>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Switch</th><th>Port</th><th>Name</th><th>Status</th><th>Speed</th><th>MACs</th><th>Connected MACs</th><th>Last Updated</th></tr></thead>
+          <tbody id="switchPortsBody"><tr><td colspan="8" class="empty">No SNMP switch data</td></tr></tbody>
+        </table>
+      </div>
+    </div>
   </div>
-</div>
 
-<!-- MACHINES -->
-<div class="section" id="sec-machines">
-  <div class="sec-head">
-    <div class="sec-title"><div class="dot"></div>Connected Machines</div>
-    <button class="btn" onclick="fetchData()">&#8635; Refresh</button>
+  <div class="section" id="sec-machines">
+    <div class="sec-head">
+      <div class="sec-title"><div class="dot"></div>Agent Devices</div>
+      <button class="btn" onclick="fetchData()">&#8635; Refresh</button>
+    </div>
+    <div class="tbl-wrap">
+      <table class="agents-table">
+        <thead>
+          <tr>
+            <th>Status</th><th>Hostname</th><th>IP</th><th>MAC</th>
+            <th>Type</th><th>OS</th><th>Windows Ver</th>
+            <th>CPU</th><th>RAM</th><th>Disk</th>
+            <th>USB</th><th>Open Ports</th><th>Apps</th>
+            <th>Uptime</th><th>Last Seen</th><th>Details</th>
+          </tr>
+        </thead>
+        <tbody id="m-body"><tr><td colspan="16" class="empty">Waiting for agent data...</td></tr></tbody>
+      </table>
+    </div>
   </div>
-  <div class="tbl-wrap"><table>
-    <thead><tr><th>Status</th><th>Hostname</th><th>IP Address</th><th>MAC Address</th><th>OS</th><th>CPU</th><th>RAM</th><th>Disk</th><th>USB</th><th>Last Seen</th></tr></thead>
-    <tbody id="m-body"><tr><td colspan="10" class="empty">Agent data ka intezaar hai...</td></tr></tbody>
-  </table></div>
-</div>
 
-<!-- ALERTS -->
-<div class="section" id="sec-alerts">
-  <div class="sec-head">
-    <div class="sec-title"><div class="dot"></div>Security Alerts</div>
-    <button class="btn" onclick="markRead()">&#10003; Mark All Read</button>
+  <div class="section" id="sec-alerts">
+    <div class="sec-head">
+      <div class="sec-title"><div class="dot"></div>Security Alerts</div>
+      <button class="btn btn-green" onclick="markRead()">&#10003; Mark All Read</button>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Type</th><th>Hostname</th><th>IP</th><th>Message</th><th>Time</th></tr></thead>
+        <tbody id="a-body"><tr><td colspan="6" class="empty">No alerts</td></tr></tbody>
+      </table>
+    </div>
   </div>
-  <div class="tbl-wrap"><table>
-    <thead><tr><th>#</th><th>Type</th><th>Hostname</th><th>IP</th><th>Message</th><th>Time</th></tr></thead>
-    <tbody id="a-body"><tr><td colspan="6" class="empty">&#10003; No alerts!</td></tr></tbody>
-  </table></div>
-</div>
 
-<!-- BANNED -->
-<div class="section" id="sec-banned">
-  <div class="sec-head">
-    <div class="sec-title"><div class="dot"></div>Banned IPs</div>
+  <div class="section" id="sec-banned">
+    <div class="sec-head"><div class="sec-title"><div class="dot"></div>Banned IPs</div></div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>IP Address</th><th>Reason</th><th>Banned At</th><th>Action</th></tr></thead>
+        <tbody id="b-body"><tr><td colspan="4" class="empty">No banned IPs</td></tr></tbody>
+      </table>
+    </div>
   </div>
-  <div class="tbl-wrap"><table>
-    <thead><tr><th>IP Address</th><th>Reason</th><th>Banned At</th><th>Action</th></tr></thead>
-    <tbody id="b-body"><tr><td colspan="4" class="empty">&#10003; No banned IPs</td></tr></tbody>
-  </table></div>
-</div>
 
+  <div class="section" id="sec-switch">
+    <div class="sec-head">
+      <div class="sec-title"><div class="dot"></div>Switch Port Details</div>
+      <span class="sw-summary" id="switchSummary2">No Switch</span>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Switch</th><th>IP</th><th>Total Ports</th><th>Active Ports</th><th>Status</th><th>Last Polled</th></tr></thead>
+        <tbody id="sw-body"><tr><td colspan="6" class="empty">No switch data</td></tr></tbody>
+      </table>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Switch</th><th>Port</th><th>Name</th><th>Status</th><th>Speed</th><th>MAC Count</th><th>Connected MACs</th><th>Last Updated</th></tr></thead>
+        <tbody id="swp-body"><tr><td colspan="8" class="empty">No port data</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section" id="sec-traceroute">
+    <div class="sec-head">
+      <div class="sec-title"><div class="dot"></div>Traceroute - Server -> Switches</div>
+      <button class="btn btn-amber" onclick="fetchTraceroute()">&#8635; Refresh All</button>
+    </div>
+    <div id="trace-container">
+      <div class="trace-empty">&#127758; Loading traceroute data...</div>
+    </div>
+  </div>
 </main>
 </div>
+
+<div class="modal" id="detail-modal">
+  <div class="panel">
+    <div class="panel-head">
+      <div class="panel-title" id="detail-title">Agent Details</div>
+      <button class="btn btn-red" onclick="closeDetails()">&#10005; Close</button>
+    </div>
+    <div class="panel-body" id="detail-body"></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
+
 <script>
-setInterval(() => {
-  document.getElementById('clk').textContent =
-    new Date().toLocaleTimeString('en-GB');
-}, 1000);
+let machinesCache = [];
+
+function updateClock() {
+  document.getElementById('clk').textContent = new Date().toLocaleTimeString('en-GB');
+}
+updateClock();
+setInterval(updateClock, 1000);
 
 function show(n, el) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-
-  const section = document.getElementById('sec-' + n);
-  if (section) section.classList.add('active');
-  if (el) el.classList.add('active');
+  document.getElementById('sec-' + n)?.classList.add('active');
+  el?.classList.add('active');
+  if (n === 'traceroute') fetchTraceroute();
 }
 
-function toast(m, t = 'ok') {
+function toast(msg, type='ok') {
   const el = document.getElementById('toast');
-  el.innerHTML = m;
+  el.textContent = msg;
   el.style.display = 'block';
-  el.style.borderColor = t === 'ok'
-    ? 'rgba(0,232,122,.4)'
-    : 'rgba(255,59,92,.4)';
-  setTimeout(() => el.style.display = 'none', 3000);
+  el.style.borderColor = type === 'ok' ? 'rgba(34,197,94,.45)' : 'rgba(239,68,68,.45)';
+  setTimeout(() => el.style.display = 'none', 3200);
 }
 
-function abadge(t) {
-  const m = {
-    'BRUTE_FORCE': 'ab-red &#128308; Brute Force',
-    'ARP_SPOOF': 'ab-pur &#9888; ARP Spoof',
-    'DNS_SPOOF': 'ab-cyn &#128309; DNS Spoof',
-    'MACHINE_OFFLINE': 'ab-red &#128308; Offline',
-    'MACHINE_ONLINE': 'ab-grn &#128994; Online',
-    'HIGH_CPU': 'ab-amb &#128293; High CPU',
-    'USB_CONNECTED': 'ab-amb &#128268; USB In',
-    'USB_DISCONNECTED': 'ab-red &#9889; USB Out'
-  };
+function esc(v) {
+  return String(v ?? '').replace(/[&<>"']/g, ch => ({
+    '&':'&amp;',
+    '<':'&lt;',
+    '>':'&gt;',
+    '"':'&quot;',
+    "'":'&#39;'
+  }[ch]));
+}
 
-  const v = m[t] || ('ab-red ' + t);
-  const [cls, ...rest] = v.split(' ');
-  return `<span class="ab ${cls}">${rest.join(' ')}</span>`;
+function asList(v) {
+  if (Array.isArray(v)) return v;
+  if (!v) return [];
+  try {
+    const p = JSON.parse(v);
+    return Array.isArray(p) ? p : [];
+  } catch {
+    return [];
+  }
 }
 
 function fmtTime(ts) {
   if (!ts) return '--';
   try {
-    return new Date(ts).toLocaleString('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
+    const d = new Date(ts);
+    if (Number.isNaN(d.getTime())) return ts || '--';
+    return d.toLocaleString('en-GB', {
+      day:'2-digit',
+      month:'short',
+      hour:'2-digit',
+      minute:'2-digit',
+      second:'2-digit'
     });
   } catch {
     return ts || '--';
   }
 }
 
-function pbar(val, cls) {
-  const num = Number(val) || 0;
-  return `<div style="display:flex;align-items:center;gap:6px">
-    <div class="pbar">
-      <div class="pfill ${cls}" style="width:${num}%"></div>
-    </div>
-    <span class="mono" style="font-size:11px;width:34px;text-align:right">${num.toFixed(0)}%</span>
-  </div>`;
+function fmtUptime(s) {
+  if (!s || s <= 0) return '--';
+  s = Math.floor(s);
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), ss = s % 60;
+  return h > 0 ? `${h}h ${m}m` : m > 0 ? `${m}m ${ss}s` : `${ss}s`;
 }
 
-function parseUsbDevices(value) {
-  if (Array.isArray(value)) return value;
+function pbar(val, cls) {
+  const n = Math.max(0, Math.min(100, Number(val) || 0));
+  const c = n > 85 ? '#ef4444' : n > 60 ? '#f59e0b' : undefined;
+  return `<div class="metric"><div class="pbar"><div class="pfill ${cls}" style="width:${n}%;${c ? 'background:' + c : ''}"></div></div><span>${n.toFixed(0)}%</span></div>`;
+}
 
+function statusBadge(s) {
+  const on = s === 'online';
+  return `<span class="status ${on ? 'online' : 'offline'}"><span class="status-dot"></span>${on ? 'ONLINE' : 'OFFLINE'}</span>`;
+}
+
+function alertBadge(type) {
+  const map = {
+    BRUTE_FORCE:['tag-red','&#128308; Brute Force'],
+    MACHINE_OFFLINE:['tag-red','&#128308; Offline'],
+    MACHINE_ONLINE:['tag-green','&#128994; Online'],
+    HIGH_CPU:['tag-amber','&#128293; High CPU'],
+    PORT_ALERT:['tag-purple','&#128268; Port Alert'],
+    PORT_STATUS:['tag-cyan','&#128268; Port Status'],
+    USB_CONNECTED:['tag-amber','&#128268; USB In'],
+    USB_DISCONNECTED:['tag-red','&#9889; USB Out'],
+    ARP_SPOOF:['tag-purple','&#9888; ARP Spoof'],
+    DNS_SPOOF:['tag-cyan','&#128309; DNS Spoof']
+  };
+  const i = map[type] || ['tag-red', esc(type || 'Unknown')];
+  return `<span class="tag ${i[0]}">${i[1]}</span>`;
+}
+
+function kvBox(title, items) {
+  return `<div class="info-box"><div class="info-title">${esc(title)}</div><div class="info-content">
+    ${items.map(([k,v]) => `<div class="kv"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div></div>`).join('') || '<div class="empty">No data</div>'}
+  </div></div>`;
+}
+
+function listBox(title, rows) {
+  return `<div class="info-box"><div class="info-title">${esc(title)}</div><div class="info-content">
+    ${rows.length ? rows.map(r => `<div class="list-line">${r}</div>`).join('') : '<div class="empty">No data</div>'}
+  </div></div>`;
+}
+
+function openDetails(i) {
+  const m = machinesCache[i];
+  if (!m) return;
+
+  const usb = asList(m.usb_devices), ports = asList(m.open_ports), apps = asList(m.running_apps);
+  let hw = [];
   try {
-    return JSON.parse(value || '[]');
-  } catch {
-    return [];
+    hw = Object.entries(JSON.parse(m.hardware_info || '{}')).map(([k,v]) => `${k}: ${v}`);
+  } catch {}
+
+  document.getElementById('detail-title').textContent = `${m.hostname || 'Unknown'} - ${m.ip_address || '--'}`;
+  document.getElementById('detail-body').innerHTML =
+    kvBox('Agent Summary',[
+      ['Hostname',m.hostname || '--'],['IP',m.ip_address || '--'],['MAC',m.mac_address || '--'],
+      ['Status',m.status || '--'],['Device Type',m.device_type || 'Unknown'],
+      ['OS',m.os_info || '--'],['Windows Ver',m.windows_version || '--'],
+      ['Agent Ver',m.agent_version || '--'],['Uptime',fmtUptime(m.uptime_seconds)],
+      ['First Seen',fmtTime(m.first_seen)],['Last Seen',fmtTime(m.last_seen)]
+    ]) +
+    kvBox('Resource Usage',[
+      ['CPU',`${Number(m.cpu_percent || 0).toFixed(0)}%`],
+      ['RAM',`${Number(m.ram_percent || 0).toFixed(0)}% / ${m.ram_total_gb || 0} GB`],
+      ['Disk',`${Number(m.disk_percent || 0).toFixed(0)}%`],
+      ['Net Sent',`${m.net_sent_mb || 0} MB`],['Net Recv',`${m.net_recv_mb || 0} MB`]
+    ]) +
+    listBox(`Open Ports (${ports.length})`, ports.map(p => esc(String(p)))) +
+    listBox(`Running Apps (${apps.length})`, apps.map(a => esc(String(a)))) +
+    listBox(`USB Devices (${usb.length})`, usb.map(u => esc(String(u)))) +
+    listBox(`Hardware Info (${hw.length})`, hw.map(h => esc(h)));
+
+  document.getElementById('detail-modal').classList.add('show');
+}
+
+function closeDetails() {
+  document.getElementById('detail-modal').classList.remove('show');
+}
+
+function hopClass(hop) {
+  if (hop.is_timeout) return 'hop-timeout';
+  const rtt = Number(hop.avg_rtt_ms) || 0;
+  if (rtt < 5) return 'hop-green';
+  if (rtt < 50) return 'hop-amber';
+  return 'hop-red';
+}
+
+function rttColor(rtt) {
+  rtt = Number(rtt) || 0;
+  if (!rtt) return '#6b7280';
+  if (rtt < 5) return '#22c55e';
+  if (rtt < 50) return '#f59e0b';
+  return '#ef4444';
+}
+
+async function runTrace(ip) {
+  toast(`Traceroute chalao: ${ip}...`);
+  try {
+    const r = await fetch(`/api/traceroute/run/${encodeURIComponent(ip)}/`, {method:'POST'});
+    const d = await r.json();
+    if (d.status === 'ok') {
+      toast(`${ip} trace complete!`);
+      fetchTraceroute();
+    } else {
+      toast('Error: ' + (d.error || 'Unknown error'), 'err');
+    }
+  } catch(e) {
+    toast('Error: ' + e.message, 'err');
+  }
+}
+
+async function fetchTraceroute() {
+  const container = document.getElementById('trace-container');
+  try {
+    const r = await fetch('/api/traceroute/');
+    if (!r.ok) throw new Error(r.status);
+    const d = await r.json();
+    const traces = d.traceroutes || [];
+
+    if (!traces.length) {
+      container.innerHTML = '<div class="trace-empty">&#127758; No switch registered.</div>';
+      return;
+    }
+
+    container.innerHTML = traces.map(t => {
+      const hops = Array.isArray(t.hops) ? t.hops : [];
+
+      const statusTag = t.status === 'success'
+        ? '<span class="tag tag-green">&#10003; Success</span>'
+        : t.status === 'failed'
+        ? '<span class="tag tag-red">&#10007; Failed</span>'
+        : '<span class="tag tag-amber">&#8987; Pending</span>';
+
+      const hopsHtml = hops.length === 0
+        ? '<div class="trace-empty">No trace data found - Run Trace</div>'
+        : `<div class="hop-chain">
+            <div class="hop-box">
+              <div class="hop-node hop-source">&#127760; Kali Server</div>
+              <div class="hop-num">SOURCE</div>
+            </div>
+            ${hops.map((hop, idx) => {
+              const isLast = idx === hops.length - 1;
+              const cls = isLast ? 'hop-target' : hopClass(hop);
+              const rttText = hop.is_timeout ? '* * *' : `${esc(hop.avg_rtt_ms)}ms`;
+              const rttCol = hop.is_timeout ? '#6b7280' : rttColor(hop.avg_rtt_ms);
+              return `
+                <span class="hop-arrow">&#8594;</span>
+                <div class="hop-box">
+                  <div class="hop-node ${cls}">${esc(hop.ip_address)}</div>
+                  <div class="hop-num">Hop ${esc(hop.hop_number)}</div>
+                  <div class="hop-rtt" style="color:${rttCol}">${rttText}</div>
+                </div>`;
+            }).join('')}
+          </div>`;
+
+      const tableRows = hops.map(hop => {
+        const rttCol = hop.is_timeout ? '#6b7280' : rttColor(hop.avg_rtt_ms);
+        return `<tr>
+          <td class="mono">${esc(hop.hop_number)}</td>
+          <td class="mono cyan">${esc(hop.ip_address)}</td>
+          <td class="mono">${hop.is_timeout ? '*' : esc(hop.rtt1_ms) + 'ms'}</td>
+          <td class="mono">${hop.is_timeout ? '*' : esc(hop.rtt2_ms) + 'ms'}</td>
+          <td class="mono">${hop.is_timeout ? '*' : esc(hop.rtt3_ms) + 'ms'}</td>
+          <td class="mono" style="color:${rttCol};font-weight:800">${hop.is_timeout ? 'Timeout' : esc(hop.avg_rtt_ms) + 'ms'}</td>
+          <td>${hop.is_timeout ? '<span class="tag tag-red">Timeout</span>' : '<span class="tag tag-green">Reply</span>'}</td>
+        </tr>`;
+      }).join('');
+
+      return `
+        <div class="trace-card">
+          <div class="trace-header">
+            <div>
+              <div class="trace-title">&#127758; ${esc(t.switch_name)} &nbsp;<span class="mono cyan">${esc(t.switch_ip)}</span></div>
+              <div class="trace-meta">${esc(t.total_hops ?? hops.length)} hops &nbsp;|&nbsp; Total RTT: ${esc(t.total_rtt_ms ?? 0)}ms &nbsp;|&nbsp; ${fmtTime(t.timestamp)}</div>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              ${statusTag}
+              <button class="btn btn-amber" onclick="runTrace('${esc(t.switch_ip)}')">&#9654; Run Trace</button>
+            </div>
+          </div>
+          ${hopsHtml}
+          ${hops.length ? `
+          <div class="tbl-wrap" style="margin-top:12px">
+            <table>
+              <thead><tr><th>Hop</th><th>IP Address</th><th>RTT 1</th><th>RTT 2</th><th>RTT 3</th><th>Avg RTT</th><th>Status</th></tr></thead>
+              <tbody>${tableRows}</tbody>
+            </table>
+          </div>` : ''}
+        </div>`;
+    }).join('');
+
+  } catch(e) {
+    container.innerHTML = `<div class="trace-empty">Error: ${esc(e.message)}</div>`;
   }
 }
 
 async function unban(ip) {
   try {
-    await fetch('/api/unban/' + encodeURIComponent(ip) + '/', {
-      method: 'POST'
-    });
-    toast('&#10003; ' + ip + ' unban ho gaya!');
+    await fetch('/api/unban/' + encodeURIComponent(ip) + '/', {method:'POST'});
+    toast(ip + ' unbanned!');
     fetchData();
-  } catch (e) {
+  } catch(e) {
     toast('Error: ' + e.message, 'err');
   }
 }
 
 async function markRead() {
   try {
-    await fetch('/api/alerts/mark-read/', {
-      method: 'POST'
-    });
+    await fetch('/api/alerts/mark-read/', {method:'POST'});
     toast('Sab alerts read!');
     fetchData();
-  } catch (e) {
+  } catch(e) {
     toast('Error: ' + e.message, 'err');
   }
+}
+
+function renderMachines(machines) {
+  const body = document.getElementById('m-body');
+  if (!machines.length) {
+    body.innerHTML = '<tr><td colspan="16" class="empty">Agent data ka wait hai...</td></tr>';
+    return;
+  }
+
+  body.innerHTML = machines.map((m,i) => `<tr>
+    <td>${statusBadge(m.status)}</td>
+    <td class="mono" style="color:#fff;font-weight:800">${esc(m.hostname || '--')}</td>
+    <td class="mono cyan">${esc(m.ip_address || '--')}</td>
+    <td class="mono" style="font-size:11px">${esc(m.mac_address || '--')}</td>
+    <td>${esc(m.device_type || 'PC')}</td>
+    <td style="font-size:11px;max-width:120px">${esc(m.os_info || '--')}</td>
+    <td style="font-size:11px;max-width:150px">${esc(m.windows_version || '--')}</td>
+    <td>${pbar(m.cpu_percent,'p-cpu')}</td>
+    <td>${pbar(m.ram_percent,'p-ram')}</td>
+    <td>${pbar(m.disk_percent,'p-dsk')}</td>
+    <td class="mono">${esc(m.usb_count || 0)}</td>
+    <td class="mono">${esc(m.open_ports_count || 0)}</td>
+    <td class="mono">${esc(m.running_apps_count || 0)}</td>
+    <td class="mono">${fmtUptime(m.uptime_seconds)}</td>
+    <td class="mono" style="font-size:11px">${fmtTime(m.last_seen)}</td>
+    <td><button class="btn" onclick="openDetails(${i})">&#128269;</button></td>
+  </tr>`).join('');
+}
+
+function renderAlerts(alerts) {
+  const rb = document.getElementById('r-alerts'), ab = document.getElementById('a-body');
+  const recent = alerts.slice(0,5);
+
+  rb.innerHTML = !recent.length ? '<tr><td colspan="5" class="empty">No alerts</td></tr>' :
+    recent.map(a => `<tr><td>${alertBadge(a.alert_type)}</td><td class="mono">${esc(a.hostname || '--')}</td><td class="mono cyan">${esc(a.ip_address || '--')}</td><td>${esc(a.alert_message || '--')}</td><td class="mono">${fmtTime(a.timestamp)}</td></tr>`).join('');
+
+  ab.innerHTML = !alerts.length ? '<tr><td colspan="6" class="empty">No alerts</td></tr>' :
+    alerts.map((a,i) => `<tr><td class="mono">${i+1}</td><td>${alertBadge(a.alert_type)}</td><td class="mono">${esc(a.hostname || '--')}</td><td class="mono cyan">${esc(a.ip_address || '--')}</td><td>${esc(a.alert_message || '--')}</td><td class="mono">${fmtTime(a.timestamp)}</td></tr>`).join('');
+}
+
+function renderBanned(banned) {
+  const body = document.getElementById('b-body');
+  body.innerHTML = !banned.length ? '<tr><td colspan="4" class="empty">No banned IPs</td></tr>' :
+    banned.map(item => `<tr>
+      <td class="mono red">${esc(item.ip_address)}</td>
+      <td><span class="tag tag-red">${esc(item.reason || 'Unknown')}</span></td>
+      <td class="mono">${fmtTime(item.banned_at)}</td>
+      <td><button class="btn btn-green" onclick="unban('${esc(item.ip_address)}')">&#128275; Unban</button></td>
+    </tr>`).join('');
+}
+
+function renderSwitchPorts(data) {
+  const switches = data.switches || [], ports = data.switch_ports || [];
+  const upCount = ports.filter(p => p.status === 'up').length;
+  const sum = switches.length ? `${switches.length} Switch | ${upCount}/${ports.length} Ports UP` : 'No Switch';
+
+  ['switchSummary','switchSummary2'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = sum;
+  });
+
+  const parseMacs = p => {
+    try {
+      return (Array.isArray(p.connected_macs)
+        ? p.connected_macs
+        : JSON.parse(p.connected_macs || '[]')
+      ).map(m => esc(m)).join('<br>');
+    } catch {
+      return esc(p.connected_macs || '--');
+    }
+  };
+
+  const portSC = s => s === 'up' ? 'port-up' : s === 'down' ? 'port-down' : 'port-unknown';
+
+  document.getElementById('switchPortsBody').innerHTML = !ports.length ?
+    '<tr><td colspan="8" class="empty">No SNMP switch data</td></tr>' :
+    ports.map(p => `<tr>
+      <td class="mono">${esc(p.switch_id || '--')}</td><td class="mono">${esc(p.if_index || '--')}</td>
+      <td>${esc(p.name || '--')}</td><td class="${portSC(p.status)}">${esc((p.status || 'unknown').toUpperCase())}</td>
+      <td class="mono">${esc(p.speed_mbps || 0)} Mbps</td><td class="mono">${esc(p.mac_count || 0)}</td>
+      <td class="macs">${parseMacs(p) || '--'}</td><td class="mono">${fmtTime(p.last_updated)}</td>
+    </tr>`).join('');
+
+  document.getElementById('sw-body').innerHTML = !switches.length ?
+    '<tr><td colspan="6" class="empty">No switch data</td></tr>' :
+    switches.map(sw => `<tr>
+      <td class="mono" style="color:#fff;font-weight:800">${esc(sw.name || '--')}</td>
+      <td class="mono cyan">${esc(sw.ip_address || '--')}</td>
+      <td class="mono">${esc(sw.total_ports || 0)}</td><td class="mono green">${esc(sw.active_ports || 0)}</td>
+      <td>${sw.status === 'online' ? '<span class="tag tag-green">ONLINE</span>' : '<span class="tag tag-red">OFFLINE</span>'}</td>
+      <td class="mono">${fmtTime(sw.last_polled)}</td>
+    </tr>`).join('');
+
+  document.getElementById('swp-body').innerHTML = !ports.length ?
+    '<tr><td colspan="8" class="empty">No port data</td></tr>' :
+    ports.map(p => `<tr>
+      <td class="mono">${esc(p.switch_id || '--')}</td><td class="mono">${esc(p.if_index || '--')}</td>
+      <td>${esc(p.name || '--')}</td><td class="${portSC(p.status)}">${esc((p.status || 'unknown').toUpperCase())}</td>
+      <td class="mono">${esc(p.speed_mbps || 0)} Mbps</td><td class="mono">${esc(p.mac_count || 0)}</td>
+      <td class="macs">${parseMacs(p) || '--'}</td><td class="mono">${fmtTime(p.last_updated)}</td>
+    </tr>`).join('');
 }
 
 async function fetchData() {
@@ -259,19 +647,18 @@ async function fetchData() {
       fetch('/api/banned-ips/')
     ]);
 
-    if (!dr.ok) throw new Error('/api/dashboard/ error: ' + dr.status);
-    if (!br.ok) throw new Error('/api/banned-ips/ error: ' + br.status);
+    if (!dr.ok) throw new Error('/api/dashboard/ ' + dr.status);
+    if (!br.ok) throw new Error('/api/banned-ips/ ' + br.status);
 
-    const d = await dr.json();
-    const b = await br.json();
+    const d = await dr.json(), b = await br.json();
+    const machines = d.machines || [], alerts = d.alerts || [], banned = b.banned_ips || [];
 
-    const machines = d.machines || [];
-    const alerts = d.alerts || [];
-    const banned = b.banned_ips || [];
+    machinesCache = machines;
 
     document.getElementById('o-tot').textContent = d.total || 0;
     document.getElementById('o-on').textContent = d.online || 0;
     document.getElementById('o-off').textContent = d.offline || 0;
+    document.getElementById('o-ip').textContent = d.active_ip_count || d.online || 0;
     document.getElementById('o-alr').textContent = alerts.length;
     document.getElementById('o-ban').textContent = banned.length;
 
@@ -284,74 +671,16 @@ async function fetchData() {
     bb.className = 'badge' + (banned.length ? ' show' : '');
 
     const bm = document.getElementById('bm');
-    const offC = d.offline || 0;
-    bm.textContent = offC;
-    bm.className = 'badge' + (offC ? ' show' : '');
+    bm.textContent = d.offline || 0;
+    bm.className = 'badge' + ((d.offline || 0) ? ' show' : '');
 
-    const mb = document.getElementById('m-body');
-
-    if (!machines.length) {
-      mb.innerHTML = '<tr><td colspan="10" class="empty">Agent.py chalao doosre laptops pe!</td></tr>';
-    } else {
-      mb.innerHTML = machines.map(m => {
-        const usb = parseUsbDevices(m.usb_devices);
-        const on = m.status === 'online';
-
-        return `<tr>
-          <td><span class="sbadge ${on ? 's-on' : 's-off'}"><span class="sdot"></span>${on ? 'ONLINE' : 'OFFLINE'}</span></td>
-          <td class="mono" style="color:#ddeeff;font-weight:700">${m.hostname || '--'}</td>
-          <td class="mono" style="color:#00c8f0">${m.ip_address || '--'}</td>
-          <td class="mono" style="font-size:11px">${m.mac_address || '--'}</td>
-          <td style="font-size:11px">${m.os_info || '--'}</td>
-          <td style="min-width:100px">${pbar(m.cpu_percent, 'p-cpu')}</td>
-          <td style="min-width:100px">${pbar(m.ram_percent, 'p-ram')}</td>
-          <td style="min-width:100px">${pbar(m.disk_percent, 'p-dsk')}</td>
-          <td><span style="color:#ffb800;font-family:monospace">&#128268; ${usb.length}</span></td>
-          <td style="font-size:11px;color:#344f6a">${fmtTime(m.last_seen)}</td>
-        </tr>`;
-      }).join('');
-    }
-
-    const ra = document.getElementById('r-alerts');
-    const ral = alerts.slice(0, 5);
-
-    ra.innerHTML = !ral.length
-      ? '<tr><td colspan="5" class="empty">&#10003; No alerts!</td></tr>'
-      : ral.map(a => `<tr>
-          <td>${abadge(a.alert_type)}</td>
-          <td class="mono">${a.hostname || '--'}</td>
-          <td class="mono" style="color:#00c8f0">${a.ip_address || '--'}</td>
-          <td style="color:#ddeeff">${a.alert_message || '--'}</td>
-          <td class="mono" style="font-size:11px;color:#344f6a">${fmtTime(a.timestamp)}</td>
-        </tr>`).join('');
-
-    const ab = document.getElementById('a-body');
-
-    ab.innerHTML = !alerts.length
-      ? '<tr><td colspan="6" class="empty">&#10003; No alerts!</td></tr>'
-      : alerts.map((a, i) => `<tr>
-          <td class="mono" style="color:#344f6a">${i + 1}</td>
-          <td>${abadge(a.alert_type)}</td>
-          <td class="mono">${a.hostname || '--'}</td>
-          <td class="mono" style="color:#00c8f0">${a.ip_address || '--'}</td>
-          <td style="color:#ddeeff">${a.alert_message || '--'}</td>
-          <td class="mono" style="font-size:11px;color:#344f6a">${fmtTime(a.timestamp)}</td>
-        </tr>`).join('');
-
-    const bbd = document.getElementById('b-body');
-
-    bbd.innerHTML = !banned.length
-      ? '<tr><td colspan="4" class="empty">&#10003; No banned IPs</td></tr>'
-      : banned.map(item => `<tr>
-          <td class="mono" style="color:#ff3b5c">${item.ip_address}</td>
-          <td><span class="ab ab-red">${item.reason || 'Unknown'}</span></td>
-          <td class="mono" style="font-size:11px;color:#344f6a">${fmtTime(item.banned_at)}</td>
-          <td><button class="btn btn-g" onclick="unban('${item.ip_address}')" style="padding:4px 10px;font-size:11px">&#128275; Unban</button></td>
-        </tr>`).join('');
-
-  } catch (e) {
+    renderMachines(machines);
+    renderAlerts(alerts);
+    renderBanned(banned);
+    renderSwitchPorts(d);
+  } catch(e) {
     console.error(e);
-    toast('Dashboard data load nahi hua: ' + e.message, 'err');
+    toast('Data load error: ' + e.message, 'err');
   }
 }
 
