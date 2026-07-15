@@ -1,3 +1,11 @@
+"""
+509 Server Agent - LAN Security Monitoring Dashboard
+Copyright (c) 2025 Ares99913. All Rights Reserved.
+
+PROPRIETARY SOFTWARE - Unauthorized use, reproduction, or distribution prohibited.
+For licensing inquiries: https://github.com/Ares99913
+"""
+
 import json
 import os
 import platform

@@ -2,10 +2,15 @@
 
 <div align="center">
 
+**⚠️ PROPRIETARY SOFTWARE - ALL RIGHTS RESERVED ⚠️**
+
+**Copyright © 2025 Ares99913**
+
 ![Python](https://img.shields.io/badge/Python-3.13-blue?style=for-the-badge&logo=python)
 ![Django](https://img.shields.io/badge/Django-5.2-green?style=for-the-badge&logo=django)
-![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)
+![License](https://img.shields.io/badge/License-Proprietary-red?style=for-the-badge)
 ![Status](https://img.shields.io/badge/Status-Production_Ready-success?style=for-the-badge)
+![Copyright](https://img.shields.io/badge/Copyright-2025_Ares99913-orange?style=for-the-badge)
 
 **A comprehensive real-time network monitoring solution for LAN environments**
 
@@ -463,9 +468,40 @@ PyInstaller>=6.0.0
 
 ---
 
-## 📄 License
+## 📄 License & Copyright
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+**Copyright © 2025 Ares99913. All Rights Reserved.**
+
+This project is **proprietary software** and is protected by copyright law.
+
+### ⚠️ Usage Restrictions
+
+- ❌ **Commercial use** is PROHIBITED without written permission
+- ❌ **Redistribution** is PROHIBITED without written permission
+- ❌ **Selling or sublicensing** is PROHIBITED
+- ❌ **Unauthorized copying** is illegal
+
+### ✅ Permitted Use
+
+- ✅ Personal educational purposes only
+- ✅ Non-commercial research (with attribution)
+- ✅ Reference and learning
+
+### 📜 License Details
+
+See the [LICENSE](LICENSE) file for complete terms and conditions.
+
+**For commercial licensing inquiries**: Contact [@Ares99913](https://github.com/Ares99913)
+
+---
+
+## ⚖️ Legal Notice
+
+This software is the intellectual property of Ares99913. Unauthorized use, reproduction, 
+or distribution may result in severe civil and criminal penalties, and will be 
+prosecuted to the maximum extent possible under the law.
+
+**© 2025 Ares99913. All Rights Reserved. Unauthorized use is strictly prohibited.**
 
 ---
 
@@ -527,3 +563,4 @@ Give a ⭐️ if this project helped you!
 [⬆ Back to Top](#-509-server---network-monitoring-system)
 
 </div>
+
