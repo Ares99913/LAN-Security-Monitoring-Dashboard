@@ -6,6 +6,12 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# WARNING: Change these in production!
+# Set environment variables:
+# - DJANGO_SECRET_KEY=<random-secret-key>
+# - DJANGO_DEBUG=False
+# - ALLOWED_HOSTS_LIST=your-domain.com,10.143.177.189
+
 SECRET_KEY = os.environ.get(
     "DJANGO_SECRET_KEY",
     "django-insecure-change-this-key-before-production"
@@ -59,13 +65,8 @@ WSGI_APPLICATION = "server_509.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE"      : "django.db.backends.postgresql",
-        "NAME"        : "lan_monitor_db",
-        "USER"        : "lan_monitor_user",
-        "PASSWORD"    : "lan_monitor_pass",
-        "HOST"        : "127.0.0.1",
-        "PORT"        : "5432",
-        "CONN_MAX_AGE": 60,
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
 }
 
@@ -95,8 +96,9 @@ CACHES = {
 }
 
 CSRF_TRUSTED_ORIGINS = [
-    "http://10.107.159.30:8000",
-    "http://localhost:8000",
+    "http://192.168.1.6:8080",
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
 ]
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760  # 10MB
@@ -120,3 +122,4 @@ LOGGING = {
         },
     },
 }
+

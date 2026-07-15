@@ -1,4 +1,27 @@
-Django==5.2.15
-django-cors-headers==4.7.0
-psutil==7.1.1
-requests==2.32.5
+# Django Framework
+Django>=5.2.0
+
+# SNMP Monitoring
+pysnmp==5.1.0
+pyasn1==0.4.8
+pycryptodomex>=3.19.0
+pysmi>=1.1.0
+pyasyncore>=1.0.0
+
+# System Monitoring
+psutil>=5.9.0
+
+# HTTP Client
+requests>=2.31.0
+
+# Network Analysis
+scapy>=2.5.0
+
+# CORS Support
+django-cors-headers>=4.3.0
+
+# Agent Compilation
+PyInstaller>=6.0.0
+
+# Additional Dependencies
+python-dotenv>=1.0.0

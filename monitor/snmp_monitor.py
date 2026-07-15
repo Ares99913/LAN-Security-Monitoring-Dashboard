@@ -1,4 +1,3 @@
-import subprocess
 import threading
 import json
 from django.utils import timezone
@@ -14,17 +13,31 @@ BASE_PORT_IFINDEX = ".1.3.6.1.2.1.17.1.4.1.2"
 POLL_INTERVAL = 30  
 
 
-def snmpwalk(ip, community, oid):
+from pysnmp.hlapi import *
+
+def snmpwalk(ip, community, oid_str):
+    results = []
+    clean_oid = oid_str.lstrip('.')
     try:
-        r = subprocess.run(
-            ["snmpwalk", "-v2c", "-c", community, "-On", ip, oid],
-            capture_output=True, text=True, timeout=8
+        iterator = nextCmd(
+            SnmpEngine(),
+            CommunityData(community, mpModel=1),
+            UdpTransportTarget((ip, 161), timeout=3, retries=1),
+            ContextData(),
+            ObjectType(ObjectIdentity(clean_oid)),
+            lexicographicMode=False
         )
-        if r.returncode != 0:
-            return []
-        return [line.strip() for line in r.stdout.splitlines() if line.strip()]
-    except Exception:
-        return []
+        
+        for errorIndication, errorStatus, errorIndex, varBinds in iterator:
+            if errorIndication or errorStatus:
+                break
+            for varBind in varBinds:
+                oid_result = "." + str(varBind[0])
+                val_result = varBind[1].prettyPrint()
+                results.append(f"{oid_result} = {val_result}")
+    except Exception as e:
+        print(f"[SNMP WALK ERR] {ip} OID {oid_str}: {e}")
+    return results
 
 def parse_index_value(lines, base_oid):
     data = {}
@@ -138,8 +151,6 @@ def poll_all_switches():
 # ── Background Thread ─────────────────────────────
 def _snmp_loop():
     import time
-    import django
-    django.setup()
     print("[OK] SNMP Monitor Started")
     while True:
         try:

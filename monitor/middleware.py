@@ -16,9 +16,9 @@ class BruteForceMiddleware:
         self.get_response = get_response
 
     def get_client_ip(self, request):
-        forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-        if forwarded_for:
-            return forwarded_for.split(",")[0].strip()
+        # NOTE: X-Forwarded-For can be spoofed by clients.
+        # Only trust it if running behind a reverse proxy (e.g., Nginx).
+        # For direct connections, use REMOTE_ADDR only.
         return request.META.get("REMOTE_ADDR", "")
 
     def get_cache_key(self, ip):

@@ -52,7 +52,7 @@ def heartbeat(request):
                 hostname      = data['hostname'],
                 ip_address    = data['ip_address'],
                 alert_type    = 'MACHINE_ONLINE',
-                alert_message = f"{data['hostname']} wapas ONLINE ho gaya!"
+                alert_message = f"{data['hostname']} ONLINE !"
             )
 
         Machine.objects.filter(ip_address=data['ip_address']).update(
@@ -126,19 +126,23 @@ def get_dashboard_data(request):
             hostname      = m.hostname,
             ip_address    = m.ip_address,
             alert_type    = 'MACHINE_OFFLINE',
-            alert_message = f"{m.hostname} OFFLINE ho gaya!"
+            alert_message = f"{m.hostname} OFFLINE !"
         )
 
     machines = list(Machine.objects.all().values())
     alerts   = list(Alert.objects.filter(is_read=False).values()[:50])
 
-    # Active unique ports
+    # Active unique ports (extract port numbers from list of dicts)
     all_ports = set()
     for m in machines:
         try:
             ports = json.loads(m.get('open_ports', '[]'))
-            all_ports.update(ports)
-        except:
+            for p in ports:
+                if isinstance(p, dict):
+                    all_ports.add(p.get('port', 0))
+                else:
+                    all_ports.add(p)
+        except Exception:
             pass
 
     # Active IP count
@@ -272,7 +276,7 @@ def get_traceroute_data(request):
 
 @csrf_exempt
 def run_traceroute_now(request, ip):
-    """Manual traceroute chalao — button click pe"""
+    """Manual traceroute — button click pe"""
     if request.method != 'POST':
         return JsonResponse({'error': 'POST only'}, status=405)
     try:

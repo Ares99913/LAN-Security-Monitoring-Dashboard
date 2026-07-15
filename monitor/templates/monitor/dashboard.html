@@ -86,7 +86,6 @@ tr:hover td{background:#111d2c}
 .port-unknown{color:#f59e0b;font-weight:800}
 .macs{max-width:260px;white-space:normal;word-break:break-word;font-size:11px}
 .sw-summary{display:inline-flex;align-items:center;padding:4px 12px;border-radius:999px;background:#1f2937;color:#e5e7eb;font-size:12px;font-weight:700;border:1px solid #20344d}
-
 .trace-card{background:#101b2a;border:1px solid #20344d;border-radius:10px;padding:16px;margin-bottom:16px}
 .trace-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .trace-title{font-size:14px;font-weight:900;color:#fff}
@@ -104,7 +103,6 @@ tr:hover td{background:#111d2c}
 .hop-target{background:rgba(56,217,255,.1);border-color:rgba(56,217,255,.4);color:#38d9ff}
 .hop-source{background:rgba(167,139,250,.1);border-color:rgba(167,139,250,.4);color:#a78bfa}
 .trace-empty{text-align:center;padding:24px;color:#60758d;font-size:13px}
-
 @media(max-width:1100px){.cards{grid-template-columns:repeat(3,1fr)}nav{width:180px}.panel-body{grid-template-columns:1fr}}
 @media(max-width:760px){.layout{flex-direction:column}nav{width:100%;display:flex;overflow:auto;border-right:0;border-bottom:1px solid #20344d}.nav-lbl{display:none}.nav-item{white-space:nowrap}.cards{grid-template-columns:repeat(2,1fr)}main{padding:14px}.hop-chain{flex-direction:column}.hop-arrow{transform:rotate(90deg)}}
 </style>
@@ -365,6 +363,9 @@ function listBox(title, rows) {
   </div></div>`;
 }
 
+/* ===========================================
+   UPDATED: openDetails with uptime fallback & windows ver from os_info
+   =========================================== */
 function openDetails(i) {
   const m = machinesCache[i];
   if (!m) return;
@@ -375,13 +376,26 @@ function openDetails(i) {
     hw = Object.entries(JSON.parse(m.hardware_info || '{}')).map(([k,v]) => `${k}: ${v}`);
   } catch {}
 
+  // Uptime fallback: first try uptime_seconds or agent_uptime_seconds, else from first_seen
+  let uptime = m.uptime_seconds || m.agent_uptime_seconds;
+  if (!uptime && m.first_seen) {
+    const diff = (Date.now() - new Date(m.first_seen).getTime()) / 1000;
+    if (diff > 0) uptime = diff;
+  }
+  const uptimeStr = fmtUptime(uptime);
+
+  // Windows Ver: first try windows_version, else extract from os_info
+  const windowsVer = m.windows_version || (m.os_info ? m.os_info.replace(/.*Windows\s+/, 'Windows ') : '--');
+
   document.getElementById('detail-title').textContent = `${m.hostname || 'Unknown'} - ${m.ip_address || '--'}`;
   document.getElementById('detail-body').innerHTML =
     kvBox('Agent Summary',[
       ['Hostname',m.hostname || '--'],['IP',m.ip_address || '--'],['MAC',m.mac_address || '--'],
       ['Status',m.status || '--'],['Device Type',m.device_type || 'Unknown'],
-      ['OS',m.os_info || '--'],['Windows Ver',m.windows_version || '--'],
-      ['Agent Ver',m.agent_version || '--'],['Uptime',fmtUptime(m.uptime_seconds)],
+      ['OS',m.os_info || '--'],
+      ['Windows Ver', windowsVer],
+      ['Agent Ver',m.agent_version || '--'],
+      ['Uptime', uptimeStr],
       ['First Seen',fmtTime(m.first_seen)],['Last Seen',fmtTime(m.last_seen)]
     ]) +
     kvBox('Resource Usage',[
@@ -539,6 +553,9 @@ async function markRead() {
   }
 }
 
+/* ===========================================
+   UPDATED: renderMachines with uptime fallback & windows ver from os_info
+   =========================================== */
 function renderMachines(machines) {
   const body = document.getElementById('m-body');
   if (!machines.length) {
@@ -546,24 +563,37 @@ function renderMachines(machines) {
     return;
   }
 
-  body.innerHTML = machines.map((m,i) => `<tr>
-    <td>${statusBadge(m.status)}</td>
-    <td class="mono" style="color:#fff;font-weight:800">${esc(m.hostname || '--')}</td>
-    <td class="mono cyan">${esc(m.ip_address || '--')}</td>
-    <td class="mono" style="font-size:11px">${esc(m.mac_address || '--')}</td>
-    <td>${esc(m.device_type || 'PC')}</td>
-    <td style="font-size:11px;max-width:120px">${esc(m.os_info || '--')}</td>
-    <td style="font-size:11px;max-width:150px">${esc(m.windows_version || '--')}</td>
-    <td>${pbar(m.cpu_percent,'p-cpu')}</td>
-    <td>${pbar(m.ram_percent,'p-ram')}</td>
-    <td>${pbar(m.disk_percent,'p-dsk')}</td>
-    <td class="mono">${esc(m.usb_count || 0)}</td>
-    <td class="mono">${esc(m.open_ports_count || 0)}</td>
-    <td class="mono">${esc(m.running_apps_count || 0)}</td>
-    <td class="mono">${fmtUptime(m.uptime_seconds)}</td>
-    <td class="mono" style="font-size:11px">${fmtTime(m.last_seen)}</td>
-    <td><button class="btn" onclick="openDetails(${i})">&#128269;</button></td>
-  </tr>`).join('');
+  body.innerHTML = machines.map((m,i) => {
+    // Uptime calculation with fallback to first_seen
+    let uptime = m.uptime_seconds || m.agent_uptime_seconds;
+    if (!uptime && m.first_seen) {
+      const diff = (Date.now() - new Date(m.first_seen).getTime()) / 1000;
+      if (diff > 0) uptime = diff;
+    }
+    const uptimeStr = fmtUptime(uptime);
+
+    // Windows Version: try windows_version, else fallback to os_info
+    const windowsVer = m.windows_version || (m.os_info ? m.os_info.replace(/.*Windows\s+/, 'Windows ') : '--');
+
+    return `<tr>
+      <td>${statusBadge(m.status)}</td>
+      <td class="mono" style="color:#fff;font-weight:800">${esc(m.hostname || '--')}</td>
+      <td class="mono cyan">${esc(m.ip_address || '--')}</td>
+      <td class="mono" style="font-size:11px">${esc(m.mac_address || '--')}</td>
+      <td>${esc(m.device_type || 'PC')}</td>
+      <td style="font-size:11px;max-width:120px">${esc(m.os_info || '--')}</td>
+      <td style="font-size:11px;max-width:150px">${esc(windowsVer)}</td>
+      <td>${pbar(m.cpu_percent,'p-cpu')}</td>
+      <td>${pbar(m.ram_percent,'p-ram')}</td>
+      <td>${pbar(m.disk_percent,'p-dsk')}</td>
+      <td class="mono">${esc(m.usb_count || 0)}</td>
+      <td class="mono">${esc(m.open_ports_count || 0)}</td>
+      <td class="mono">${esc(m.running_apps_count || 0)}</td>
+      <td class="mono">${uptimeStr}</td>
+      <td class="mono" style="font-size:11px">${fmtTime(m.last_seen)}</td>
+      <td><button class="btn" onclick="openDetails(${i})">&#128269;</button></td>
+    </tr>`;
+  }).join('');
 }
 
 function renderAlerts(alerts) {

@@ -55,6 +55,9 @@ class BannedIP(models.Model):
     reason     = models.CharField(max_length=200)
     is_active  = models.BooleanField(default=True)
     banned_at  = models.DateTimeField(auto_now_add=True)
+    auto_unban_at = models.DateTimeField(null=True, blank=True)
+    unbanned_at = models.DateTimeField(null=True, blank=True)
+    failed_attempts = models.IntegerField(default=0)
 
 # ──────────────────────────────────────────────────
 # SECURITY ALERT
