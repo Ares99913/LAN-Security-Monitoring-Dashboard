@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>509 Server - LAN Security Monitor — DEMO</title>
+<style>
+/* ── EXACT CSS from real dashboard ── */
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Segoe UI,Arial,sans-serif;background:#050910;color:#dbeafe;min-height:100vh;overflow:hidden}
+::-webkit-scrollbar{width:7px;height:7px}
+::-webkit-scrollbar-thumb{background:#24415f;border-radius:8px}
+header{height:58px;background:#08111d;border-bottom:1px solid #20344d;padding:0 22px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20}
+.logo{font-size:17px;font-weight:800;color:#fff}
+.logo span{color:#38d9ff}
+.hright{display:flex;gap:14px;align-items:center}
+.live-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 0 rgba(34,197,94,.7);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.7)}70%{box-shadow:0 0 0 9px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+.clock{font-family:Consolas,monospace;font-size:12px;color:#38d9ff;border:1px solid rgba(56,217,255,.25);background:rgba(56,217,255,.08);padding:5px 10px;border-radius:6px}
+.layout{display:flex;height:calc(100vh - 58px)}
+nav{width:210px;background:#08111d;border-right:1px solid #20344d;padding:16px 10px;flex-shrink:0}
+.nav-lbl{font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#60758d;padding:10px 10px 5px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:7px;color:#93a9bf;font-size:13px;cursor:pointer;border:1px solid transparent;margin-bottom:3px}
+.nav-item.active{background:rgba(56,217,255,.09);color:#38d9ff;border-color:rgba(56,217,255,.25)}
+.badge{margin-left:auto;background:#ef4444;color:white;font-size:10px;font-weight:800;padding:2px 6px;border-radius:999px}
+main{flex:1;padding:22px;display:flex;flex-direction:column;gap:18px;overflow:hidden}
+.cards{display:grid;grid-template-columns:repeat(6,minmax(120px,1fr));gap:12px}
+.card{background:#101b2a;border:1px solid #20344d;border-radius:9px;padding:15px;min-height:96px;transition:border-color .5s,box-shadow .5s}
+.card-lbl{font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:#72869c;margin-bottom:7px}
+.card-val{font-size:28px;font-weight:900;font-family:Consolas,monospace;transition:color .4s}
+.card-sub{font-size:11px;color:#72869c;margin-top:4px}
+.cyan{color:#38d9ff}
+.green{color:#22c55e}
+.red{color:#ef4444}
+.amber{color:#f59e0b}
+.purple{color:#a78bfa}
+.blue{color:#60a5fa}
+.sec-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.sec-title{font-size:15px;font-weight:800;display:flex;gap:8px;align-items:center}
+.dot{width:7px;height:7px;border-radius:50%;background:#38d9ff}
+.btn{padding:7px 12px;border-radius:7px;border:1px solid rgba(56,217,255,.3);background:rgba(56,217,255,.08);color:#38d9ff;font-size:12px;font-weight:700;cursor:pointer}
+.btn-green{border-color:rgba(34,197,94,.35);background:rgba(34,197,94,.08);color:#22c55e}
+.tbl-wrap{background:#101b2a;border:1px solid #20344d;border-radius:9px;overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead{background:#0c1522;border-bottom:1px solid #20344d}
+th{padding:10px 12px;text-align:left;font-size:10px;font-weight:900;letter-spacing:.8px;text-transform:uppercase;color:#72869c;white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid rgba(32,52,77,.55);color:#9fb6ca;vertical-align:middle;transition:background .3s}
+.empty{padding:36px;text-align:center;color:#60758d}
+.mono{font-family:Consolas,monospace}
+.status{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:900;border-radius:999px;padding:4px 8px;border:1px solid}
+.status-dot{width:6px;height:6px;border-radius:50%}
+.online{color:#22c55e;background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.3)}
+.online .status-dot{background:#22c55e;animation:pulse 2s infinite}
+.offline{color:#ef4444;background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3)}
+.offline .status-dot{background:#ef4444}
+.tag{display:inline-flex;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:800;border:1px solid}
+.tag-red{color:#ef4444;background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3)}
+.tag-amber{color:#f59e0b;background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.3)}
+.tag-cyan{color:#38d9ff;background:rgba(56,217,255,.1);border-color:rgba(56,217,255,.3)}
+.tag-green{color:#22c55e;background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.3)}
+.tag-purple{color:#a78bfa;background:rgba(167,139,250,.1);border-color:rgba(167,139,250,.3)}
+.pbar{height:6px;background:#08111d;border:1px solid #20344d;border-radius:999px;overflow:hidden;min-width:72px}
+.pfill{height:100%;border-radius:999px;transition:width 1s ease}
+.p-cpu{background:#38d9ff}
+.p-ram{background:#22c55e}
+.p-dsk{background:#f59e0b}
+.p-cpu-red{background:#ef4444}
+.metric{display:flex;align-items:center;gap:7px}
+.metric span{width:34px;text-align:right;font-family:Consolas,monospace;font-size:11px;color:#dbeafe}
+.sw-summary{display:inline-flex;align-items:center;padding:4px 12px;border-radius:999px;background:#1f2937;color:#e5e7eb;font-size:12px;font-weight:700;border:1px solid #20344d}
+/* ── CARD FLASH ANIMATIONS ── */
+.card.flash-green{border-color:rgba(34,197,94,.6)!important;box-shadow:0 0 20px rgba(34,197,94,.12)!important}
+.card.flash-red{border-color:rgba(239,68,68,.6)!important;box-shadow:0 0 20px rgba(239,68,68,.12)!important}
+.card.flash-amber{border-color:rgba(245,158,11,.6)!important;box-shadow:0 0 20px rgba(245,158,11,.12)!important}
+.card.flash-purple{border-color:rgba(167,139,250,.6)!important;box-shadow:0 0 20px rgba(167,139,250,.12)!important}
+/* ── ROW HIGHLIGHT ── */
+tr.row-on td{background:rgba(34,197,94,.05)!important}
+tr.row-warn td{background:rgba(239,68,68,.05)!important}
+/* ── TOAST STACK (exact real dashboard toast + improved) ── */
+.toast-stack{position:fixed;right:22px;bottom:22px;display:flex;flex-direction:column-reverse;gap:10px;z-index:200}
+.toast-card{background:#0e1c2e;border:1px solid #20344d;border-radius:9px;padding:13px 16px;font-size:13px;display:flex;align-items:flex-start;gap:10px;min-width:310px;max-width:360px;transform:translateX(420px);opacity:0;transition:transform .45s cubic-bezier(.22,1,.36,1),opacity .45s;pointer-events:none}
+.toast-card.show{transform:translateX(0);opacity:1}
+.toast-icon{font-size:17px;line-height:1;padding-top:1px;flex-shrink:0}
+.toast-body{}
+.toast-title{font-weight:800;font-size:11px;letter-spacing:.5px;margin-bottom:3px;text-transform:uppercase}
+.toast-msg{font-size:11px;color:#6a86a0;line-height:1.4}
+.t-green{border-color:rgba(34,197,94,.4);box-shadow:0 4px 18px rgba(34,197,94,.08)}
+.t-red{border-color:rgba(239,68,68,.4);box-shadow:0 4px 18px rgba(239,68,68,.08)}
+.t-amber{border-color:rgba(245,158,11,.4);box-shadow:0 4px 18px rgba(245,158,11,.08)}
+.t-purple{border-color:rgba(167,139,250,.4);box-shadow:0 4px 18px rgba(167,139,250,.08)}
+/* ── NEW ALERT ROW SLIDE-IN ── */
+@keyframes slideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+tr.new-row{animation:slideIn .4s ease}
+/* ── SCAN LINE (subtle CRT feel) ── */
+.scanline{position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.025) 3px,rgba(0,0,0,.025) 4px);pointer-events:none;z-index:999}
+</style>
+</head>
+<body>
+<div class="scanline"></div>
+
+<!-- HEADER — exact match -->
+<header>
+<div class="logo">&#128737; <span>509</span> LAN Security Monitor</div>
+<div class="hright">
+<div class="live-dot"></div>
+<div class="clock" id="clk">--:--:--</div>
+</div>
+</header>
+
+<div class="layout">
+<!-- NAV — exact match -->
+<nav>
+<div class="nav-lbl">Monitor</div>
+<div class="nav-item active">&#128202; Dashboard</div>
+<div class="nav-item">&#128187; Agents</div>
+<div class="nav-lbl">Security</div>
+<div class="nav-item">&#128680; Alerts <span class="badge" id="ba" style="display:none"></span></div>
+<div class="nav-item">&#128308; Banned IPs <span class="badge" id="bb" style="display:none"></span></div>
+<div class="nav-lbl">Network</div>
+<div class="nav-item">&#128268; Switch Ports</div>
+<div class="nav-item">&#127758; Traceroute</div>
+</nav>
+
+<!-- MAIN DASHBOARD — exact match -->
+<main>
+<!-- STAT CARDS -->
+<div class="cards">
+<div class="card" id="c-tot">
+<div class="card-lbl">Total Agents</div>
+<div class="card-val cyan" id="o-tot">0</div>
+<div class="card-sub">Registered</div>
+</div>
+<div class="card" id="c-on">
+<div class="card-lbl">Online</div>
+<div class="card-val green" id="o-on">0</div>
+<div class="card-sub">Live heartbeat</div>
+</div>
+<div class="card" id="c-off">
+<div class="card-lbl">Offline</div>
+<div class="card-val red" id="o-off">0</div>
+<div class="card-sub">No heartbeat</div>
+</div>
+<div class="card" id="c-ip">
+<div class="card-lbl">Active IPs</div>
+<div class="card-val blue" id="o-ip">0</div>
+<div class="card-sub">Online unique IPs</div>
+</div>
+<div class="card" id="c-alr">
+<div class="card-lbl">Unread Alerts</div>
+<div class="card-val amber" id="o-alr">0</div>
+<div class="card-sub">Needs review</div>
+</div>
+<div class="card" id="c-ban">
+<div class="card-lbl">Banned IPs</div>
+<div class="card-val purple" id="o-ban">0</div>
+<div class="card-sub">Active lockouts</div>
+</div>
+</div>
+
+<!-- RECENT ALERTS -->
+<div>
+<div class="sec-head" style="margin-bottom:12px">
+<div class="sec-title"><div class="dot"></div>Recent Alerts</div>
+<button class="btn">View All</button>
+</div>
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>Type</th><th>Hostname</th><th>IP</th><th>Message</th><th>Time</th></tr></thead>
+<tbody id="r-alerts">
+<tr><td colspan="5" class="empty" id="no-alerts">No alerts</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<!-- SWITCH PORTS -->
+<div>
+<div class="sec-head" style="margin-bottom:10px">
+<div class="sec-title"><div class="dot"></div>Switch Physical Ports</div>
+<span class="sw-summary">No Switch</span>
+</div>
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>Switch</th><th>Port</th><th>Name</th><th>Status</th><th>Speed</th><th>MACs</th><th>Connected MACs</th><th>Last Updated</th></tr></thead>
+<tbody>
+<tr><td colspan="8" class="empty">No SNMP switch data</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+</main>
+</div>
+
+<!-- TOAST STACK -->
+<div class="toast-stack">
+<div class="toast-card t-red" id="t-brute">
+<div class="toast-icon">🔴</div>
+<div class="toast-body">
+<div class="toast-title" style="color:#ef4444">IP BANNED — BRUTE FORCE</div>
+<div class="toast-msg">10.143.177.77 — 4 failed attempts → auto-banned 15 min</div>
+</div>
+</div>
+
+<div class="toast-card t-amber" id="t-usb">
+<div class="toast-icon">🔌</div>
+<div class="toast-body">
+<div class="toast-title" style="color:#f59e0b">USB DEVICE CONNECTED</div>
+<div class="toast-msg">LAPTOP-003 — Kingston DataTraveler 32GB detected</div>
+</div>
+</div>
+
+<div class="toast-card t-red" id="t-cpu">
+<div class="toast-icon">⚠️</div>
+<div class="toast-body">
+<div class="toast-title" style="color:#ef4444">HIGH CPU ALERT</div>
+<div class="toast-msg">DESKTOP-001 — CPU spiked to 92% on 10.143.177.101</div>
+</div>
+</div>
+
+<div class="toast-card t-green" id="t-online">
+<div class="toast-icon">✅</div>
+<div class="toast-body">
+<div class="toast-title" style="color:#22c55e">MACHINE ONLINE</div>
+<div class="toast-msg">LAPTOP-003 (10.143.177.115) reconnected to network</div>
+</div>
+</div>
+</div>
+
+<script>
+/* ── CLOCK ── */
+function tick(){
+document.getElementById('clk').textContent=new Date().toLocaleTimeString('en-GB')
+}
+tick();
+setInterval(tick,1000);
+
+/* ── HELPERS ── */
+function $(id){return document.getElementById(id)}
+
+function flash(id,cls,ms=1800){
+const el=$(id);
+el.classList.add(cls);
+setTimeout(()=>el.classList.remove(cls),ms);
+}
+
+function showToast(id,ms=4000){
+const el=$(id);
+el.classList.add('show');
+setTimeout(()=>el.classList.remove('show'),ms);
+}
+
+function animNum(el,from,to,ms=600){
+const s=Date.now();
+(function step(){
+const t=Math.min(1,(Date.now()-s)/ms);
+el.textContent=Math.round(from+(to-from)*t);
+if(t<1)requestAnimationFrame(step);
+})();
+}
+
+/* ── ALERT TABLE HELPER ── */
+const alertTypes = {
+online: {cls:'tag tag-green',    label:'MACHINE ONLINE'},
+cpu:    {cls:'tag tag-red',      label:'HIGH CPU'},
+usb:    {cls:'tag tag-amber',    label:'USB CONNECTED'},
+brute:  {cls:'tag tag-purple',   label:'BRUTE FORCE'},
+};
+
+let alertCount = 0;
+
+function addAlert(type, hostname, ip, msg){
+const tbody = $('r-alerts');
+const norow = $('no-alerts');
+if(norow) norow.parentElement.remove();
+
+const t = alertTypes[type];
+const now = new Date().toLocaleTimeString('en-GB');
+alertCount++;
+
+const tr = document.createElement('tr');
+tr.className = 'new-row';
+tr.innerHTML = `
+<td><span class="${t.cls}">${t.label}</span></td>
+<td class="mono">${hostname}</td>
+<td class="mono cyan">${ip}</td>
+<td>${msg}</td>
+<td class="mono" style="color:#60758d">${now}</td>
+`;
+tbody.insertBefore(tr, tbody.firstChild);
+
+// Keep max 8 rows
+while(tbody.rows.length > 8) tbody.deleteRow(tbody.rows.length-1);
+
+// Update alert card + badge
+$('o-alr').textContent = alertCount;
+const ba=$('ba');
+ba.textContent=alertCount;
+ba.style.display='inline-flex';
+flash('c-alr','flash-amber');
+}
+
+/* ─────────────────────────────────────────
+ANIMATION SEQUENCE  (loops every 26s)
+───────────────────────────────────────── */
+function runDemo(){
+/* ── RESET ── */
+alertCount = 0;
+['o-tot','o-on','o-off','o-ip','o-alr','o-ban'].forEach(id=>$(id).textContent='0');
+$('ba').style.display='none';
+$('bb').style.display='none';
+$('r-alerts').innerHTML='<tr><td colspan="5" class="empty" id="no-alerts">No alerts</td></tr>';
+
+/* T+1s — Agents register (2 offline, 2 online initial) */
+setTimeout(()=>{
+animNum($('o-tot'),0,4);
+animNum($('o-on'),0,2);
+animNum($('o-off'),0,2);
+animNum($('o-ip'),0,2);
+flash('c-tot','flash-green');
+flash('c-on','flash-green',1500);
+},1000);
+
+/* T+4s — LAPTOP-003 comes ONLINE */
+setTimeout(()=>{
+animNum($('o-on'),2,3);
+animNum($('o-off'),2,1);
+animNum($('o-ip'),2,3);
+flash('c-on','flash-green',2000);
+flash('c-off','flash-red',1200);
+addAlert('online','LAPTOP-003','10.143.177.115','Agent heartbeat received — machine back online');
+showToast('t-online',3800);
+},4000);
+
+/* T+9s — HIGH CPU on DESKTOP-001 */
+setTimeout(()=>{
+addAlert('cpu','DESKTOP-001','10.143.177.101','CPU at 92% — sustained high load detected');
+showToast('t-cpu',4000);
+},9000);
+
+/* T+14s — USB on LAPTOP-003 */
+setTimeout(()=>{
+addAlert('usb','LAPTOP-003','10.143.177.115','New USB: Kingston DataTraveler 32GB (VID:0951)');
+showToast('t-usb',3800);
+},14000);
+
+/* T+19s — BRUTE FORCE BAN */
+setTimeout(()=>{
+animNum($('o-ban'),0,1);
+flash('c-ban','flash-purple',2500);
+addAlert('brute','Unknown','10.143.177.77','4 failed login attempts — IP auto-banned for 15 min');
+showToast('t-brute',4200);
+const bb=$('bb');
+bb.textContent='1';
+bb.style.display='inline-flex';
+},19000);
+
+/* T+26s — loop */
+setTimeout(runDemo,26000);
+}
+
+setTimeout(runDemo,800);
+</script>
+</body>
+</html>
