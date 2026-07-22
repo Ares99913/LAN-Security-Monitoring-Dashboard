@@ -20,7 +20,19 @@
 
 ---
 
-## � Overview
+## 🎬 Demo
+
+<div align="center">
+
+<img src="assets/demo.gif" alt="509 Server Dashboard Demo" width="100%">
+
+*Live dashboard — real-time agents, alerts, USB detection & brute-force auto-ban*
+
+</div>
+
+---
+
+## 📖 Overview
 
 509 Server is a powerful network monitoring system designed for enterprise LAN environments. It provides real-time monitoring of connected devices, SNMP-enabled switches, security alerts, and comprehensive network analytics through an intuitive web dashboard.
 

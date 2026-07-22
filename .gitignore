@@ -19,6 +19,7 @@ db.sqlite3.bak
 # Logs
 logs/
 *.log
+agent_crash.log
 
 # OS Files
 .DS_Store
@@ -33,7 +34,7 @@ Thumbs.db
 
 # PyInstaller
 build/
-*.spec
+dist/
 
 # Backup files
 *.bak
@@ -41,40 +42,16 @@ build/
 *.old
 *.tmp
 
-# Test files
+# Test / scratch files
 test_*.py
 *_test.py
+add_switch.py
+register_*.py
 
 # Environment files
 .env
 .env.local
 .env.production
 
-# Backup files
-*.bak
-*.backup
-
-# Test files
-test_*.py
-add_switch.py
-register_*.py
-
-# Agent crash logs
-agent_crash.log
-
-# Environment files
-.env
-.env.local
-.env.production
-
-# Backup files
-*.bak
-*.backup
-
-# Test files
-test_*.py
-add_switch.py
-register_*.py
-
-# Agent crash logs
-agent_crash.log
+# Gemini / AI
+.agents/
