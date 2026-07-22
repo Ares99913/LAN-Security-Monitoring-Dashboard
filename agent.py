@@ -20,7 +20,7 @@ from pathlib import Path
 import psutil
 import requests
 
-SERVER_IP = "192.168.1.6"
+SERVER_IP = "192.168.1.50"
 SERVER_PORT = 8080
 INTERVAL = 3
 
@@ -319,7 +319,7 @@ def send_alert(hostname, ip, alert_type, message, info=""):
                 "alert_message": message,
                 "device_info": info,
             },
-            timeout=3,
+            timeout=10,
         )
 
         if response.status_code != 200:
@@ -330,7 +330,7 @@ def send_alert(hostname, ip, alert_type, message, info=""):
 
 
 def post_heartbeat(data):
-    return requests.post(f"{SERVER}/api/heartbeat/", json=data, timeout=5)
+    return requests.post(f"{SERVER}/api/heartbeat/", json=data, timeout=15)
 
 
 def run():
@@ -420,6 +420,8 @@ def run():
 
         except requests.exceptions.ConnectionError:
             print("[!] Server not found")
+        except requests.exceptions.ReadTimeout:
+            print("[!] Server response timeout (server might be busy)")
         except Exception as e:
             log_error(f"[ERR] {type(e).__name__}: {e}")
 
